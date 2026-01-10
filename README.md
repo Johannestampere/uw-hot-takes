@@ -1,0 +1,1 @@
+# Waterloo Hot Takes
