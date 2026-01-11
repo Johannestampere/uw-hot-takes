@@ -8,6 +8,14 @@ class Settings(BaseSettings):
     jwt_secret: str = "sec"
     debug: bool = False
 
+    # Google OAuth
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/auth/google/callback"
+
+    # Frontend URL (for redirecting after OAuth)
+    frontend_url: str = "http://localhost:3000"
+
     class Config:
         env_file = ".env"
 
