@@ -1,0 +1,6 @@
+OVERVIEW.md
+THEORY.md
+PLAN.md
+*.env
+*env*
+.env.example
