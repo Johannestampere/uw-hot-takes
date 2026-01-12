@@ -54,3 +54,7 @@ class TakeResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class TakesListResponse(BaseModel):
+    takes: list[TakeResponse]
+    next_cursor: str | None = None
