@@ -8,7 +8,7 @@ import httpx
 
 from app.database import get_db
 from app.models import User
-from app.schemas.auth import RegisterRequest, LoginRequest, AuthResponse, UserResponse
+from app.schemas.schemas import RegisterRequest, LoginRequest, AuthResponse, UserResponse
 from app.utils.password import hash_password, verify_password
 from app.utils.jwt import create_session_token
 from app.utils.username_generator import generate_username

@@ -29,3 +29,28 @@ class UserResponse(BaseModel):
 class AuthResponse(BaseModel):
     user: UserResponse
     message: str
+
+# Takes schemas
+class TakeCreate(BaseModel):
+    content: str
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Content cannot be empty")
+        if len(v) > 500:
+            raise ValueError("Content cannot exceed 500 characters")
+        return v
+
+class TakeResponse(BaseModel):
+    id: UUID
+    content: str
+    like_count: int
+    created_at: datetime
+    username: str
+    user_liked: bool = False
+
+    class Config:
+        from_attributes = True
