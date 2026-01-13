@@ -194,3 +194,64 @@ async def delete_take(
     take.is_hidden = True
 
     return {"message": "Take deleted"}
+
+@router.post("/{take_id}/like")
+async def like_take(
+    take_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # Check if take exists
+    result = await db.execute(
+        select(Take).where(Take.id == take_id, Take.is_hidden == False)
+    )
+    take = result.scalar_one_or_none()
+
+    if not take:
+        raise HTTPException(status_code=404, detail="Take not found")
+
+    # Check if already liked
+    result = await db.execute(
+        select(Like).where(Like.take_id == take_id, Like.user_id == current_user.id)
+    )
+    existing_like = result.scalar_one_or_none()
+
+    if existing_like:
+        return {"message": "Already liked"}
+
+    # Create like and increment count transactionally
+    like = Like(take_id=take_id, user_id=current_user.id)
+    db.add(like)
+    take.like_count += 1
+
+    return {"message": "Liked"}
+
+@router.delete("/{take_id}/like")
+async def unlike_take(
+    take_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # Check if take exists
+    result = await db.execute(
+        select(Take).where(Take.id == take_id, Take.is_hidden == False)
+    )
+    take = result.scalar_one_or_none()
+
+    if not take:
+        raise HTTPException(status_code=404, detail="Take not found")
+
+    # Find and delete like
+    result = await db.execute(
+        select(Like).where(Like.take_id == take_id, Like.user_id == current_user.id)
+    )
+    like = result.scalar_one_or_none()
+
+    if not like:
+        return {"message": "Not liked"}
+
+    # Delete like and decrement count transactionally
+    await db.delete(like)
+    take.like_count = max(0, take.like_count - 1)  # Prevent negative counts
+
+    return {"message": "Unliked"}
