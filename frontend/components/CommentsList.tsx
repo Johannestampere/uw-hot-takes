@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { Comment } from "@/lib/api";
+import ReportModal from "./ReportModal";
 
 interface CommentsListProps {
   comments: Comment[];
@@ -17,23 +21,44 @@ function formatTimeAgo(dateString: string): string {
 }
 
 export default function CommentsList({ comments }: CommentsListProps) {
+  const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
+
   return (
-    <div className="mt-4 space-y-3">
-      {comments.map((comment) => (
-        <div
-          key={comment.id}
-          className="p-3 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900"
-        >
-          <p className="text-gray-900 dark:text-gray-100 text-sm whitespace-pre-wrap break-words">
-            {comment.content}
-          </p>
-          <div className="mt-2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <span className="font-medium">{comment.username}</span>
-            <span>•</span>
-            <span>{formatTimeAgo(comment.created_at)}</span>
+    <>
+      <div className="mt-4 space-y-3">
+        {comments.map((comment) => (
+          <div
+            key={comment.id}
+            className="p-3 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900"
+          >
+            <div className="flex items-start justify-between mb-2">
+              <p className="text-gray-900 dark:text-gray-100 text-sm whitespace-pre-wrap break-words flex-1">
+                {comment.content}
+              </p>
+              <button
+                onClick={() => setReportingCommentId(comment.id)}
+                className="ml-2 text-gray-400 hover:text-red-500 transition-colors text-xs"
+                title="Report"
+              >
+                Report
+              </button>
+            </div>
+            <div className="mt-2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <span className="font-medium">{comment.username}</span>
+              <span>•</span>
+              <span>{formatTimeAgo(comment.created_at)}</span>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      {reportingCommentId && (
+        <ReportModal
+          targetType="comment"
+          targetId={reportingCommentId}
+          onClose={() => setReportingCommentId(null)}
+        />
+      )}
+    </>
   );
 }

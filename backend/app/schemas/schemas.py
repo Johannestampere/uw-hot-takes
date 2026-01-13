@@ -86,3 +86,29 @@ class CommentResponse(BaseModel):
 
 class CommentsListResponse(BaseModel):
     comments: list[CommentResponse]
+
+# Report schemas
+class ReportCreate(BaseModel):
+    target_type: str  # 'take' or 'comment'
+    target_id: UUID
+    reason: str
+
+    @field_validator("target_type")
+    @classmethod
+    def validate_target_type(cls, v: str) -> str:
+        if v not in ["take", "comment"]:
+            raise ValueError("target_type must be 'take' or 'comment'")
+        return v
+
+    @field_validator("reason")
+    @classmethod
+    def validate_reason(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Reason cannot be empty")
+        if len(v) > 500:
+            raise ValueError("Reason cannot exceed 500 characters")
+        return v
+
+class ReportResponse(BaseModel):
+    message: str

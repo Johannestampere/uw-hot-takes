@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import { Take } from "@/lib/api";
 import Link from "next/link";
+import ReportModal from "./ReportModal";
 
 interface TakeCardProps {
   take: Take;
@@ -19,37 +23,58 @@ function formatTimeAgo(dateString: string): string {
 }
 
 export default function TakeCard({ take, onLike }: TakeCardProps) {
+  const [showReportModal, setShowReportModal] = useState(false);
+
   return (
-    <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900">
-      <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
-        {take.content}
-      </p>
-      <div className="mt-3 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-        <div className="flex items-center gap-3">
-          <span className="font-medium">{take.username}</span>
-          <span>{formatTimeAgo(take.created_at)}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/takes/${take.id}`}
-            className="flex items-center gap-1 hover:text-blue-500 transition-colors"
-          >
-            <span>Comments</span>
-            <span>{take.comment_count}</span>
-          </Link>
+    <>
+      <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900">
+        <div className="flex items-start justify-between mb-2">
+          <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words flex-1">
+            {take.content}
+          </p>
           <button
-            onClick={() => onLike?.(take.id)}
-            className={`flex items-center gap-1 transition-colors ${
-              take.user_liked
-                ? "text-red-500"
-                : "hover:text-red-500"
-            }`}
+            onClick={() => setShowReportModal(true)}
+            className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
+            title="Report"
           >
-            <span>{take.user_liked ? "♥" : "♡"}</span>
-            <span>{take.like_count}</span>
+          Report
           </button>
         </div>
+        <div className="mt-3 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-3">
+            <span className="font-medium">{take.username}</span>
+            <span>{formatTimeAgo(take.created_at)}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/takes/${take.id}`}
+              className="flex items-center gap-1 hover:text-blue-500 transition-colors"
+            >
+              <span>Comments</span>
+              <span>{take.comment_count}</span>
+            </Link>
+            <button
+              onClick={() => onLike?.(take.id)}
+              className={`flex items-center gap-1 transition-colors ${
+                take.user_liked
+                  ? "text-red-500"
+                  : "hover:text-red-500"
+              }`}
+            >
+              <span>{take.user_liked ? "♥" : "♡"}</span>
+              <span>{take.like_count}</span>
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {showReportModal && (
+        <ReportModal
+          targetType="take"
+          targetId={take.id}
+          onClose={() => setShowReportModal(false)}
+        />
+      )}
+    </>
   );
 }

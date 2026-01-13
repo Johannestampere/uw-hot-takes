@@ -110,4 +110,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ content }),
     }),
+
+  // Reports
+  createReport: (targetType: "take" | "comment", targetId: string, reason: string) =>
+    fetchApi<{ message: string }>("/reports", {
+      method: "POST",
+      body: JSON.stringify({ target_type: targetType, target_id: targetId, reason }),
+    }),
 };
