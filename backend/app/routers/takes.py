@@ -14,6 +14,7 @@ from app.models import User, Take, Like, Comment
 from app.schemas.schemas import TakeCreate, TakeResponse, TakesListResponse, CommentCreate, CommentResponse, CommentsListResponse
 from app.dependencies import get_current_user, get_optional_user
 from app.utils.profanity import contains_profanity
+from app.utils.redis_client import publish_message
 
 router = APIRouter(prefix="/takes", tags=["takes"])
 
@@ -56,7 +57,7 @@ async def create_take(
     await db.flush()
     await db.refresh(take)
 
-    return TakeResponse(
+    response = TakeResponse(
         id=take.id,
         content=take.content,
         like_count=take.like_count,
@@ -65,6 +66,22 @@ async def create_take(
         username=current_user.username,
         user_liked=False,
     )
+
+    # Broadcast new take to feed subscribers
+    await publish_message("feed", {
+        "type": "new_take",
+        "data": {
+            "id": str(response.id),
+            "content": response.content,
+            "like_count": response.like_count,
+            "comment_count": response.comment_count,
+            "created_at": response.created_at.isoformat(),
+            "username": response.username,
+            "user_liked": False,
+        }
+    })
+
+    return response
 
 @router.get("", response_model=TakesListResponse)
 async def get_takes(
@@ -245,6 +262,15 @@ async def like_take(
     db.add(like)
     take.like_count += 1
 
+    # Broadcast like count update to feed subscribers
+    await publish_message("feed", {
+        "type": "like_update",
+        "data": {
+            "id": str(take_id),
+            "like_count": take.like_count,
+        }
+    })
+
     return {"message": "Liked"}
 
 @router.delete("/{take_id}/like")
@@ -274,6 +300,15 @@ async def unlike_take(
     # Delete like and decrement count transactionally
     await db.delete(like)
     take.like_count = max(0, take.like_count - 1)  # Prevent negative counts
+
+    # Broadcast like count update to feed subscribers
+    await publish_message("feed", {
+        "type": "like_update",
+        "data": {
+            "id": str(take_id),
+            "like_count": take.like_count,
+        }
+    })
 
     return {"message": "Unliked"}
 
@@ -343,10 +378,24 @@ async def create_comment(
     await db.flush()
     await db.refresh(comment)
 
-    return CommentResponse(
+    response = CommentResponse(
         id=comment.id,
         take_id=comment.take_id,
         content=comment.content,
         username=current_user.username,
         created_at=comment.created_at,
     )
+
+    # Broadcast new comment to take's comment subscribers
+    await publish_message(f"comments:{take_id}", {
+        "type": "new_comment",
+        "data": {
+            "id": str(response.id),
+            "take_id": str(response.take_id),
+            "content": response.content,
+            "username": response.username,
+            "created_at": response.created_at.isoformat(),
+        }
+    })
+
+    return response

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import auth, takes
+from app.routers import auth, takes, websocket
 
 settings = get_settings()
 
@@ -21,6 +21,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(takes.router)
+app.include_router(websocket.router)
 
 @app.get("/health")
 async def health_check():
