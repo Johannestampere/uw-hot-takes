@@ -4,6 +4,7 @@ export interface Take {
   id: string;
   content: string;
   like_count: number;
+  comment_count: number;
   created_at: string;
   username: string;
   user_liked: boolean;
@@ -19,6 +20,18 @@ export interface User {
   email: string;
   username: string;
   created_at: string;
+}
+
+export interface Comment {
+  id: string;
+  take_id: string;
+  content: string;
+  username: string;
+  created_at: string;
+}
+
+export interface CommentsResponse {
+  comments: Comment[];
 }
 
 export type SortOption = "newest" | "hottest_24h" | "hottest_7d";
@@ -87,4 +100,14 @@ export const api = {
 
   unlikeTake: (id: string) =>
     fetchApi<{ message: string }>(`/takes/${id}/like`, { method: "DELETE" }),
+
+  // Comments
+  getComments: (takeId: string) =>
+    fetchApi<CommentsResponse>(`/takes/${takeId}/comments`),
+
+  createComment: (takeId: string, content: string) =>
+    fetchApi<Comment>(`/takes/${takeId}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    }),
 };

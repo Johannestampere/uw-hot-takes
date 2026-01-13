@@ -60,6 +60,7 @@ async def create_take(
         id=take.id,
         content=take.content,
         like_count=take.like_count,
+        comment_count=0,
         created_at=take.created_at,
         username=current_user.username,
         user_liked=False,
@@ -124,11 +125,23 @@ async def get_takes(
         )
         user_liked_ids = {row[0] for row in likes_result.fetchall()}
 
+    # Get comment counts for all takes
+    comment_counts = {}
+    if takes:
+        take_ids = [t.id for t in takes]
+        counts_result = await db.execute(
+            select(Comment.take_id, func.count(Comment.id))
+            .where(and_(Comment.take_id.in_(take_ids), Comment.is_hidden == False))
+            .group_by(Comment.take_id)
+        )
+        comment_counts = {row[0]: row[1] for row in counts_result.fetchall()}
+
     take_responses = [
         TakeResponse(
             id=take.id,
             content=take.content,
             like_count=take.like_count,
+            comment_count=comment_counts.get(take.id, 0),
             created_at=take.created_at,
             username=take.user.username,
             user_liked=take.id in user_liked_ids,
@@ -165,10 +178,18 @@ async def get_take(
         )
         user_liked = like_result.scalar_one_or_none() is not None
 
+    # Get comment count
+    comment_count_result = await db.execute(
+        select(func.count(Comment.id))
+        .where(Comment.take_id == take_id, Comment.is_hidden == False)
+    )
+    comment_count = comment_count_result.scalar_one()
+
     return TakeResponse(
         id=take.id,
         content=take.content,
         like_count=take.like_count,
+        comment_count=comment_count,
         created_at=take.created_at,
         username=take.user.username,
         user_liked=user_liked,

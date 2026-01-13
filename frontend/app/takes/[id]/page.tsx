@@ -1,0 +1,176 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { api, Take, Comment } from "@/lib/api";
+import TakeCard from "@/components/TakeCard";
+import CommentsList from "@/components/CommentsList";
+import CommentComposer from "@/components/CommentComposer";
+
+export default function TakeDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const takeId = params.id as string;
+
+  const [take, setTake] = useState<Take | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCommentsLoading, setIsCommentsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check auth status
+  useEffect(() => {
+    api.getMe()
+      .then(() => setIsAuthenticated(true))
+      .catch(() => setIsAuthenticated(false));
+  }, []);
+
+  // Fetch take
+  useEffect(() => {
+    api.getTake(takeId)
+      .then((data) => {
+        setTake(data);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Failed to load take");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [takeId]);
+
+  // Fetch comments
+  useEffect(() => {
+    api.getComments(takeId)
+      .then((data) => {
+        setComments(data.comments);
+      })
+      .catch((err) => {
+        console.error("Failed to load comments:", err);
+      })
+      .finally(() => {
+        setIsCommentsLoading(false);
+      });
+  }, [takeId]);
+
+  // Handle like/unlike
+  const handleLike = async (id: string) => {
+    if (!isAuthenticated) {
+      alert("Please sign in to like takes");
+      return;
+    }
+
+    if (!take) return;
+
+    // Optimistic update
+    setTake({
+      ...take,
+      user_liked: !take.user_liked,
+      like_count: take.user_liked ? take.like_count - 1 : take.like_count + 1,
+    });
+
+    try {
+      if (take.user_liked) {
+        await api.unlikeTake(id);
+      } else {
+        await api.likeTake(id);
+      }
+    } catch (err) {
+      // Revert on error
+      setTake({
+        ...take,
+        user_liked: take.user_liked,
+        like_count: take.like_count,
+      });
+      setError(err instanceof Error ? err.message : "Failed to like/unlike");
+    }
+  };
+
+  // Handle comment submission
+  const handleCommentSubmit = async (content: string) => {
+    const newComment = await api.createComment(takeId, content);
+    setComments((prev) => [...prev, newComment]);
+    if (take) {
+      setTake({ ...take, comment_count: take.comment_count + 1 });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <button
+          onClick={() => router.back()}
+          className="mb-4 text-blue-500 hover:text-blue-600 transition-colors"
+        >
+          ← Back
+        </button>
+        <div className="animate-pulse">
+          <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 mb-2" />
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/2" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !take) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <button
+          onClick={() => router.back()}
+          className="mb-4 text-blue-500 hover:text-blue-600 transition-colors"
+        >
+          ← Back
+        </button>
+        <div className="p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
+          {error || "Take not found"}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-6">
+      <button
+        onClick={() => router.back()}
+        className="mb-4 text-blue-500 hover:text-blue-600 transition-colors"
+      >
+        ← Back
+      </button>
+
+      <TakeCard take={take} onLike={handleLike} />
+
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          Comments ({take.comment_count})
+        </h3>
+
+        {isAuthenticated && (
+          <CommentComposer onSubmit={handleCommentSubmit} />
+        )}
+
+        {isCommentsLoading ? (
+          <div className="mt-4 space-y-3">
+            {[...Array(2)].map((_, i) => (
+              <div
+                key={i}
+                className="p-3 border border-gray-200 dark:border-gray-800 rounded-lg animate-pulse"
+              >
+                <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-3/4 mb-2" />
+                <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : comments.length === 0 ? (
+          <div className="mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+            No comments yet. Be the first to comment!
+          </div>
+        ) : (
+          <CommentsList comments={comments} />
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,4 +1,5 @@
 import { Take } from "@/lib/api";
+import Link from "next/link";
 
 interface TakeCardProps {
   take: Take;
@@ -28,17 +29,26 @@ export default function TakeCard({ take, onLike }: TakeCardProps) {
           <span className="font-medium">{take.username}</span>
           <span>{formatTimeAgo(take.created_at)}</span>
         </div>
-        <button
-          onClick={() => onLike?.(take.id)}
-          className={`flex items-center gap-1 transition-colors ${
-            take.user_liked
-              ? "text-red-500"
-              : "hover:text-red-500"
-          }`}
-        >
-          <span>{take.user_liked ? "♥" : "♡"}</span>
-          <span>{take.like_count}</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/takes/${take.id}`}
+            className="flex items-center gap-1 hover:text-blue-500 transition-colors"
+          >
+            <span>Comments</span>
+            <span>{take.comment_count}</span>
+          </Link>
+          <button
+            onClick={() => onLike?.(take.id)}
+            className={`flex items-center gap-1 transition-colors ${
+              take.user_liked
+                ? "text-red-500"
+                : "hover:text-red-500"
+            }`}
+          >
+            <span>{take.user_liked ? "♥" : "♡"}</span>
+            <span>{take.like_count}</span>
+          </button>
+        </div>
       </div>
     </div>
   );
