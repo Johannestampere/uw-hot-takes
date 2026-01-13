@@ -58,3 +58,30 @@ class TakeResponse(BaseModel):
 class TakesListResponse(BaseModel):
     takes: list[TakeResponse]
     next_cursor: str | None = None
+
+# Comment schema
+class CommentCreate(BaseModel):
+    content: str
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Content cannot be empty")
+        if len(v) > 300:
+            raise ValueError("Content cannot exceed 300 characters")
+        return v
+
+class CommentResponse(BaseModel):
+    id: UUID
+    take_id: UUID
+    content: str
+    username: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class CommentsListResponse(BaseModel):
+    comments: list[CommentResponse]

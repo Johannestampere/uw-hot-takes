@@ -10,8 +10,8 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.orm import joinedload
 
 from app.database import get_db
-from app.models import User, Take, Like
-from app.schemas.schemas import TakeCreate, TakeResponse, TakesListResponse
+from app.models import User, Take, Like, Comment
+from app.schemas.schemas import TakeCreate, TakeResponse, TakesListResponse, CommentCreate, CommentResponse, CommentsListResponse
 from app.dependencies import get_current_user, get_optional_user
 from app.utils.profanity import contains_profanity
 
@@ -255,3 +255,77 @@ async def unlike_take(
     take.like_count = max(0, take.like_count - 1)  # Prevent negative counts
 
     return {"message": "Unliked"}
+
+@router.get("/{take_id}/comments", response_model=CommentsListResponse)
+async def get_comments(
+    take_id: UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    # Check if take exists
+    result = await db.execute(
+        select(Take).where(Take.id == take_id, Take.is_hidden == False)
+    )
+    take = result.scalar_one_or_none()
+
+    if not take:
+        raise HTTPException(status_code=404, detail="Take not found")
+
+    # Get comments ordered by created_at (ascending order)
+    result = await db.execute(
+        select(Comment)
+        .where(Comment.take_id == take_id, Comment.is_hidden == False)
+        .options(joinedload(Comment.user))
+        .order_by(Comment.created_at.asc())
+    )
+    comments = result.scalars().unique().all()
+
+    comment_responses = [
+        CommentResponse(
+            id=comment.id,
+            take_id=comment.take_id,
+            content=comment.content,
+            username=comment.user.username,
+            created_at=comment.created_at,
+        )
+        for comment in comments
+    ]
+
+    return CommentsListResponse(comments=comment_responses)
+
+@router.post("/{take_id}/comments", response_model=CommentResponse)
+async def create_comment(
+    take_id: UUID,
+    request: CommentCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # Check if take exists
+    result = await db.execute(
+        select(Take).where(Take.id == take_id, Take.is_hidden == False)
+    )
+    take = result.scalar_one_or_none()
+
+    if not take:
+        raise HTTPException(status_code=404, detail="Take not found")
+
+    # Check profanity
+    if contains_profanity(request.content):
+        raise HTTPException(status_code=400, detail="Content contains inappropriate language")
+
+    # Create comment
+    comment = Comment(
+        take_id=take_id,
+        user_id=current_user.id,
+        content=request.content,
+    )
+    db.add(comment)
+    await db.flush()
+    await db.refresh(comment)
+
+    return CommentResponse(
+        id=comment.id,
+        take_id=comment.take_id,
+        content=comment.content,
+        username=current_user.username,
+        created_at=comment.created_at,
+    )
