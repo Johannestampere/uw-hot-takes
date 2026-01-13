@@ -80,4 +80,11 @@ export const api = {
 
   deleteTake: (id: string) =>
     fetchApi<{ message: string }>(`/takes/${id}`, { method: "DELETE" }),
+
+  // Likes
+  likeTake: (id: string) =>
+    fetchApi<{ message: string }>(`/takes/${id}/like`, { method: "POST" }),
+
+  unlikeTake: (id: string) =>
+    fetchApi<{ message: string }>(`/takes/${id}/like`, { method: "DELETE" }),
 };

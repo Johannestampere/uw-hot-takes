@@ -105,14 +105,50 @@ export default function Home() {
     setTakes((prev) => [newTake, ...prev]);
   };
 
-  // Handle like (placeholder - will implement in Phase 5)
-  const handleLike = (id: string) => {
+  // Handle like/unlike
+  const handleLike = async (id: string) => {
     if (!isAuthenticated) {
       alert("Please sign in to like takes");
       return;
     }
-    // TODO: Implement like API call
-    console.log("Like:", id);
+
+    const take = takes.find((t) => t.id === id);
+    if (!take) return;
+
+    // Optimistic update
+    setTakes((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              user_liked: !t.user_liked,
+              like_count: t.user_liked ? t.like_count - 1 : t.like_count + 1,
+            }
+          : t
+      )
+    );
+
+    try {
+      if (take.user_liked) {
+        await api.unlikeTake(id);
+      } else {
+        await api.likeTake(id);
+      }
+    } catch (err) {
+      // Revert on error
+      setTakes((prev) =>
+        prev.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                user_liked: take.user_liked,
+                like_count: take.like_count,
+              }
+            : t
+        )
+      );
+      setError(err instanceof Error ? err.message : "Failed to like/unlike");
+    }
   };
 
   return (
