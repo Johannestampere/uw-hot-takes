@@ -6,6 +6,7 @@ import { api, Take, Comment } from "@/lib/api";
 import TakeCard from "@/components/TakeCard";
 import CommentsList from "@/components/CommentsList";
 import CommentComposer from "@/components/CommentComposer";
+import { useCommentsWebSocket } from "@/lib/useCommentsWebSocket";
 
 export default function TakeDetailPage() {
   const params = useParams();
@@ -86,6 +87,22 @@ export default function TakeDetailPage() {
       setError(err instanceof Error ? err.message : "Failed to like/unlike");
     }
   };
+
+  // WebSocket: Listen for new comments
+  useCommentsWebSocket({
+    takeId,
+    onNewComment: (newComment) => {
+      setComments((prev) => {
+        // Check if comment already exists (avoid duplicates)
+        if (prev.some((c) => c.id === newComment.id)) return prev;
+        return [...prev, newComment];
+      });
+      // Update comment count
+      if (take) {
+        setTake({ ...take, comment_count: take.comment_count + 1 });
+      }
+    },
+  });
 
   // Handle comment submission
   const handleCommentSubmit = async (content: string) => {

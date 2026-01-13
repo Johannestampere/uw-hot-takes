@@ -5,6 +5,7 @@ import { api, Take, SortOption } from "@/lib/api";
 import TakeCard from "@/components/TakeCard";
 import TakeComposer from "@/components/TakeComposer";
 import SortToggle from "@/components/SortToggle";
+import { useFeedWebSocket } from "@/lib/useFeedWebSocket";
 
 export default function Home() {
   const [takes, setTakes] = useState<Take[]>([]);
@@ -104,6 +105,25 @@ export default function Home() {
     const newTake = await api.createTake(content);
     setTakes((prev) => [newTake, ...prev]);
   };
+
+  // WebSocket: Listen for feed updates
+  useFeedWebSocket({
+    onNewTake: (newTake) => {
+      // Only add to feed if on newest sort
+      if (sort === "newest") {
+        setTakes((prev) => {
+          // Check if take already exists (avoid duplicates)
+          if (prev.some((t) => t.id === newTake.id)) return prev;
+          return [newTake, ...prev];
+        });
+      }
+    },
+    onLikeUpdate: (takeId, likeCount) => {
+      setTakes((prev) =>
+        prev.map((t) => (t.id === takeId ? { ...t, like_count: likeCount } : t))
+      );
+    },
+  });
 
   // Handle like/unlike
   const handleLike = async (id: string) => {
