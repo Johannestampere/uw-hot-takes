@@ -4,7 +4,7 @@ from uuid import UUID
 import base64
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import joinedload
@@ -15,6 +15,7 @@ from app.schemas.schemas import TakeCreate, TakeResponse, TakesListResponse, Com
 from app.dependencies import get_current_user, get_optional_user
 from app.utils.profanity import contains_profanity
 from app.utils.redis_client import publish_message
+from app.utils.rate_limit import check_rate_limit
 
 router = APIRouter(prefix="/takes", tags=["takes"])
 
@@ -42,10 +43,18 @@ def decode_cursor(cursor: str) -> tuple[datetime, UUID]:
 
 @router.post("", response_model=TakeResponse)
 async def create_take(
+    http_request: Request,
     request: TakeCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Rate limit: 5 takes per user per hour
+    await check_rate_limit(
+        key=f"post_take:{current_user.id}",
+        max_requests=5,
+        window_seconds=3600,
+    )
+
     if contains_profanity(request.content):
         raise HTTPException(status_code=400, detail="Content contains inappropriate language")
 
@@ -239,6 +248,13 @@ async def like_take(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Rate limit: 30 likes per user per hour
+    await check_rate_limit(
+        key=f"like:{current_user.id}",
+        max_requests=30,
+        window_seconds=3600,
+    )
+
     # Check if take exists
     result = await db.execute(
         select(Take).where(Take.id == take_id, Take.is_hidden == False)
@@ -279,6 +295,13 @@ async def unlike_take(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Rate limit: 30 unlikes per user per hour (shared with likes)
+    await check_rate_limit(
+        key=f"like:{current_user.id}",
+        max_requests=30,
+        window_seconds=3600,
+    )
+
     # Check if take exists
     result = await db.execute(
         select(Take).where(Take.id == take_id, Take.is_hidden == False)
@@ -355,6 +378,13 @@ async def create_comment(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Rate limit: 10 comments per user per hour
+    await check_rate_limit(
+        key=f"comment:{current_user.id}",
+        max_requests=10,
+        window_seconds=3600,
+    )
+
     # Check if take exists
     result = await db.execute(
         select(Take).where(Take.id == take_id, Take.is_hidden == False)

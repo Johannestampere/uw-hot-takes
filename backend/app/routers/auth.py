@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -14,6 +14,7 @@ from app.utils.jwt import create_session_token
 from app.utils.username_generator import generate_username
 from app.dependencies import get_current_user
 from app.config import get_settings
+from app.utils.rate_limit import check_rate_limit, get_client_ip
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -26,10 +27,19 @@ GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 
 @router.post("/register", response_model=AuthResponse)
 async def register(
+    http_request: Request,
     request: RegisterRequest,
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):
+    # Rate limit: 5 registrations per IP per hour
+    client_ip = await get_client_ip(http_request)
+    await check_rate_limit(
+        key=f"register:{client_ip}",
+        max_requests=5,
+        window_seconds=3600,
+    )
+
     # Check if email already taken
     result = await db.execute(select(User).where(User.email == request.email))
 
@@ -73,10 +83,19 @@ async def register(
 
 @router.post("/login", response_model=AuthResponse)
 async def login(
+    http_request: Request,
     request: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):
+    # Rate limit: 10 logins per IP per hour
+    client_ip = await get_client_ip(http_request)
+    await check_rate_limit(
+        key=f"login:{client_ip}",
+        max_requests=10,
+        window_seconds=3600,
+    )
+
     # Find user by email
     result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
