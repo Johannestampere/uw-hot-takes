@@ -40,16 +40,16 @@ export default function TakeComposer({ onSubmit, disabled }: TakeComposerProps) 
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="What's your hot take?"
+        placeholder="drop your hot take"
         disabled={disabled || isSubmitting}
-        className="w-full p-3 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+        className="w-full p-4 border border-[rgba(255,215,0,0.6)] rounded-xl bg-zinc-900 text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none focus:ring-2 focus:ring-[#ffd700] disabled:opacity-50 transition-all duration-150"
         rows={3}
       />
-      <div className="mt-2 flex items-center justify-between">
+      <div className="mt-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span
             className={`text-sm ${
-              isOverLimit ? "text-red-500" : "text-gray-500 dark:text-gray-400"
+              isOverLimit ? "text-red-500" : "text-zinc-400"
             }`}
           >
             {charCount}/{MAX_LENGTH}
@@ -59,7 +59,7 @@ export default function TakeComposer({ onSubmit, disabled }: TakeComposerProps) 
         <button
           type="submit"
           disabled={isEmpty || isOverLimit || isSubmitting || disabled}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-5 py-2.5 bg-[#ffd700] text-black font-medium rounded-lg hover:bg-[#e6c200] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 clickable"
         >
           {isSubmitting ? "Posting..." : "Post"}
         </button>

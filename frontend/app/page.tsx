@@ -188,14 +188,14 @@ export default function Home() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Feed</h2>
+        <h2 className="text-xl font-bold text-zinc-100">Feed</h2>
         <SortToggle value={sort} onChange={setSort} />
       </div>
 
       {isAuthenticated && <TakeComposer onSubmit={handleSubmit} />}
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
+        <div className="mb-4 p-3 bg-red-900/30 text-red-400 rounded-xl">
           {error}
         </div>
       )}
@@ -205,15 +205,23 @@ export default function Home() {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg animate-pulse"
+              className="p-4 border border-[rgba(255,215,0,0.6)] rounded-xl bg-zinc-900"
             >
-              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 mb-2" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/2" />
+              <div className="flex items-center gap-2 mb-3">
+                <div className="skeleton h-4 w-24" />
+                <div className="skeleton h-3 w-16" />
+              </div>
+              <div className="skeleton h-4 w-full mb-2" />
+              <div className="skeleton h-4 w-3/4 mb-4" />
+              <div className="flex items-center gap-4">
+                <div className="skeleton h-5 w-12" />
+                <div className="skeleton h-5 w-16" />
+              </div>
             </div>
           ))}
         </div>
       ) : takes.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-12 text-zinc-400">
           No takes yet. Be the first to share your hot take!
         </div>
       ) : (
@@ -225,7 +233,7 @@ export default function Home() {
           {/* Infinite scroll trigger */}
           <div ref={loadMoreRef} className="h-10 flex items-center justify-center">
             {isLoadingMore && (
-              <div className="text-gray-500 dark:text-gray-400">Loading more...</div>
+              <div className="text-zinc-400">Loading more...</div>
             )}
           </div>
         </div>

@@ -5,35 +5,14 @@ import { api, User } from "@/lib/api";
 import Link from "next/link";
 
 export default function Header() {
-  const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Check localStorage first, then system preference
-    const stored = localStorage.getItem("darkMode");
-    if (stored !== null) {
-      const isDark = stored === "true";
-      setDarkMode(isDark);
-      document.documentElement.classList.toggle("dark", isDark);
-    } else {
-      // Default to system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setDarkMode(prefersDark);
-      document.documentElement.classList.toggle("dark", prefersDark);
-    }
-
     // Check auth status
     api.getMe()
       .then((userData) => setUser(userData))
       .catch(() => setUser(null));
   }, []);
-
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    document.documentElement.classList.toggle("dark", newMode);
-    localStorage.setItem("darkMode", String(newMode));
-  };
 
   const handleLogout = async () => {
     try {
@@ -46,48 +25,43 @@ export default function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-      <Link href="/" className="text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-blue-500 transition-colors">
+    <header className="flex items-center justify-between px-6 py-4 border-b border-[rgba(255,215,0,0.3)] bg-zinc-900">
+      <Link
+        href="/"
+        className="text-xl font-bold text-zinc-100 hover:text-[#ffd700] transition-all duration-150 clickable"
+      >
         UW Hot Takes
       </Link>
 
       <div className="flex items-center gap-4">
         {user ? (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="text-sm text-zinc-200 px-4">
               {user.username}
             </span>
             <button
               onClick={handleLogout}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+              className="text-sm text-zinc-400 hover:text-zinc-100 transition-all duration-150 clickable"
             >
-              Logout
+              Log Out
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+              className="text-sm text-zinc-400 hover:text-zinc-100 transition-all duration-150 clickable"
             >
               Login
             </Link>
             <Link
               href="/register"
-              className="text-sm px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="text-sm px-4 py-2 bg-[#ffd700] text-black font-medium rounded-lg hover:bg-[#e6c200] transition-all duration-150 clickable"
             >
               Sign up
             </Link>
           </div>
         )}
-
-        <button
-          onClick={toggleDarkMode}
-          className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          aria-label="Toggle dark mode"
-        >
-          {darkMode ? "Light Mode" : "Dark Mode"}
-        </button>
       </div>
     </header>
   );

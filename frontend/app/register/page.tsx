@@ -48,13 +48,13 @@ export default function RegisterPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-8">
+        <h1 className="text-2xl font-bold text-center text-zinc-100 mb-8">
           Create an Account
         </h1>
 
         <button
           onClick={handleGoogleLogin}
-          className="w-full py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-3 text-gray-700 dark:text-gray-300"
+          className="w-full py-3 px-4 border border-zinc-700 rounded-xl hover:bg-zinc-800 transition-all duration-150 flex items-center justify-center gap-3 text-zinc-200 clickable"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -78,16 +78,16 @@ export default function RegisterPage() {
         </button>
 
         <div className="my-6 flex items-center">
-          <div className="flex-1 border-t border-gray-300 dark:border-gray-700" />
-          <span className="px-4 text-sm text-gray-500 dark:text-gray-400">or</span>
-          <div className="flex-1 border-t border-gray-300 dark:border-gray-700" />
+          <div className="flex-1 border-t border-zinc-700" />
+          <span className="px-4 text-sm text-zinc-400">or</span>
+          <div className="flex-1 border-t border-zinc-700" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              className="block text-sm font-medium text-zinc-200 mb-1"
             >
               Email
             </label>
@@ -97,7 +97,7 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="w-full px-4 py-3 border border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffd700] bg-zinc-900 text-zinc-100 placeholder-zinc-500 transition-all duration-150"
               placeholder="you@example.com"
             />
           </div>
@@ -105,7 +105,7 @@ export default function RegisterPage() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              className="block text-sm font-medium text-zinc-200 mb-1"
             >
               Password
             </label>
@@ -115,7 +115,7 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="w-full px-4 py-3 border border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffd700] bg-zinc-900 text-zinc-100 placeholder-zinc-500 transition-all duration-150"
               placeholder="••••••••"
             />
           </div>
@@ -123,7 +123,7 @@ export default function RegisterPage() {
           <div>
             <label
               htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              className="block text-sm font-medium text-zinc-200 mb-1"
             >
               Confirm Password
             </label>
@@ -133,13 +133,13 @@ export default function RegisterPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="w-full px-4 py-3 border border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffd700] bg-zinc-900 text-zinc-100 placeholder-zinc-500 transition-all duration-150"
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm">
+            <div className="p-3 bg-red-900/30 text-red-400 rounded-xl text-sm">
               {error}
             </div>
           )}
@@ -147,15 +147,15 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-3 px-4 bg-[#ffd700] text-black font-medium rounded-xl hover:bg-[#e6c200] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 clickable"
           >
             {isLoading ? "Creating account..." : "Sign up"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-6 text-center text-sm text-zinc-400">
           Already have an account?{" "}
-          <Link href="/login" className="text-blue-500 hover:text-blue-600">
+          <Link href="/login" className="text-[#ffd700] hover:text-[#e6c200] transition-all duration-150">
             Login
           </Link>
         </p>

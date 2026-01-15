@@ -131,7 +131,7 @@ export default function TakeDetailPage() {
       <div className="max-w-2xl mx-auto px-4 py-6">
         <button
           onClick={() => router.back()}
-          className="mb-4 text-blue-500 hover:text-blue-600 transition-colors"
+          className="mb-4 text-zinc-200 hover:text-zinc-300 transition-colors"
         >
           ← Back
         </button>
@@ -150,7 +150,7 @@ export default function TakeDetailPage() {
       <div className="max-w-2xl mx-auto px-4 py-6">
         <button
           onClick={() => router.back()}
-          className="mb-4 text-blue-500 hover:text-blue-600 transition-colors"
+          className="mb-4 text-zinc-200 hover:text-zinc-300 transition-colors"
         >
           ← Back
         </button>
@@ -165,7 +165,7 @@ export default function TakeDetailPage() {
     <div className="max-w-2xl mx-auto px-4 py-6">
       <button
         onClick={() => router.back()}
-        className="mb-4 text-blue-500 hover:text-blue-600 transition-colors"
+        className="mb-4 text-zinc-200 hover:text-zinc-400 transition-colors"
       >
         ← Back
       </button>
