@@ -103,12 +103,12 @@ async def get_takes(
     # Base query - exclude hidden takes
     query = select(Take).where(Take.is_hidden == False).options(joinedload(Take.user))
 
-    # Apply time filter for hottest sorts
+    # Apply time filter for hottest sorts (use naive datetime to match DB)
     if sort == SortOption.hottest_24h:
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+        cutoff = datetime.utcnow() - timedelta(hours=24)
         query = query.where(Take.created_at >= cutoff)
     elif sort == SortOption.hottest_7d:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+        cutoff = datetime.utcnow() - timedelta(days=7)
         query = query.where(Take.created_at >= cutoff)
 
     # Apply cursor pagination (for newest sort)

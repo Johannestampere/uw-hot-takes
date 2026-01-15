@@ -20,6 +20,7 @@ export default function TakeDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const recentlyPostedCommentIds = useRef<Set<string>>(new Set());
+  const pendingCommentContent = useRef<string | null>(null);
 
   // Check auth status
   useEffect(() => {
@@ -95,6 +96,8 @@ export default function TakeDetailPage() {
     onNewComment: (newComment) => {
       // Skip if this is a comment we just posted (avoid duplicate)
       if (recentlyPostedCommentIds.current.has(newComment.id)) return;
+      // Skip if this matches content we're currently posting (WebSocket arrived before POST response)
+      if (pendingCommentContent.current && newComment.content === pendingCommentContent.current) return;
       setComments((prev) => {
         // Check if comment already exists (avoid duplicates)
         if (prev.some((c) => c.id === newComment.id)) return prev;
@@ -109,7 +112,10 @@ export default function TakeDetailPage() {
 
   // Handle comment submission
   const handleCommentSubmit = async (content: string) => {
+    // Track content before request to catch early WebSocket messages
+    pendingCommentContent.current = content;
     const newComment = await api.createComment(takeId, content);
+    pendingCommentContent.current = null;
     // Track this ID to avoid duplicate from WebSocket
     recentlyPostedCommentIds.current.add(newComment.id);
     setComments((prev) => [...prev, newComment]);

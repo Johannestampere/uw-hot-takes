@@ -18,7 +18,10 @@ from app.utils.rate_limit import check_rate_limit, get_client_ip
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+settings = get_settings()
 COOKIE_NAME = "session"
+# Use secure cookies only in production (not localhost)
+COOKIE_SECURE = not settings.debug
 
 # Google OAuth endpoints (public, same for everyone)
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -71,7 +74,7 @@ async def register(
         key=COOKIE_NAME,
         value=token,
         httponly=True,
-        secure=True,
+        secure=COOKIE_SECURE,
         samesite="lax",
         max_age=60 * 60 * 24 * 7,  # 7 days
     )
@@ -112,7 +115,7 @@ async def login(
         key=COOKIE_NAME,
         value=token,
         httponly=True,
-        secure=True,
+        secure=COOKIE_SECURE,
         samesite="lax",
         max_age=60 * 60 * 24 * 7,  # 7 days
     )
@@ -235,7 +238,7 @@ async def google_callback(
         key=COOKIE_NAME,
         value=token,
         httponly=True,
-        secure=True,
+        secure=COOKIE_SECURE,
         samesite="lax",
         max_age=60 * 60 * 24 * 7,  # 7 days
     )

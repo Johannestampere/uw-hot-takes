@@ -1,4 +1,5 @@
 import json
+import ssl
 from typing import Any
 import redis.asyncio as redis
 from app.config import get_settings
@@ -12,11 +13,20 @@ _redis_pool = None
 async def get_redis() -> redis.Redis:
     global _redis_pool
     if _redis_pool is None:
-        _redis_pool = redis.ConnectionPool.from_url(
-            settings.redis_url,
-            encoding="utf-8",
-            decode_responses=True,
-        )
+        # For Upstash (rediss://), disable SSL cert verification to avoid macOS issues
+        if settings.redis_url.startswith("rediss://"):
+            _redis_pool = redis.ConnectionPool.from_url(
+                settings.redis_url,
+                encoding="utf-8",
+                decode_responses=True,
+                ssl_cert_reqs="none",
+            )
+        else:
+            _redis_pool = redis.ConnectionPool.from_url(
+                settings.redis_url,
+                encoding="utf-8",
+                decode_responses=True,
+            )
     return redis.Redis(connection_pool=_redis_pool)
 
 # Close Redis connection
