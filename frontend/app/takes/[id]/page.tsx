@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, Take, Comment } from "@/lib/api";
 import TakeCard from "@/components/TakeCard";
@@ -19,6 +19,7 @@ export default function TakeDetailPage() {
   const [isCommentsLoading, setIsCommentsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const recentlyPostedCommentIds = useRef<Set<string>>(new Set());
 
   // Check auth status
   useEffect(() => {
@@ -92,6 +93,8 @@ export default function TakeDetailPage() {
   useCommentsWebSocket({
     takeId,
     onNewComment: (newComment) => {
+      // Skip if this is a comment we just posted (avoid duplicate)
+      if (recentlyPostedCommentIds.current.has(newComment.id)) return;
       setComments((prev) => {
         // Check if comment already exists (avoid duplicates)
         if (prev.some((c) => c.id === newComment.id)) return prev;
@@ -107,10 +110,14 @@ export default function TakeDetailPage() {
   // Handle comment submission
   const handleCommentSubmit = async (content: string) => {
     const newComment = await api.createComment(takeId, content);
+    // Track this ID to avoid duplicate from WebSocket
+    recentlyPostedCommentIds.current.add(newComment.id);
     setComments((prev) => [...prev, newComment]);
     if (take) {
       setTake({ ...take, comment_count: take.comment_count + 1 });
     }
+    // Clear after 5 seconds
+    setTimeout(() => recentlyPostedCommentIds.current.delete(newComment.id), 5000);
   };
 
   if (isLoading) {
