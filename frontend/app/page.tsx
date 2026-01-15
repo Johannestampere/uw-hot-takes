@@ -19,6 +19,7 @@ export default function Home() {
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const recentlyPostedIds = useRef<Set<string>>(new Set());
 
   // Check auth status
   useEffect(() => {
@@ -103,12 +104,19 @@ export default function Home() {
   // Handle new take submission
   const handleSubmit = async (content: string) => {
     const newTake = await api.createTake(content);
+    // Track this ID to avoid duplicate from WebSocket
+    recentlyPostedIds.current.add(newTake.id);
     setTakes((prev) => [newTake, ...prev]);
+    // Clear after 5 seconds
+    setTimeout(() => recentlyPostedIds.current.delete(newTake.id), 5000);
   };
 
   // WebSocket: Listen for feed updates
   useFeedWebSocket({
     onNewTake: (newTake) => {
+      // Skip if this is a take we just posted (avoid duplicate)
+      if (recentlyPostedIds.current.has(newTake.id)) return;
+
       // Only add to feed if on newest sort
       if (sort === "newest") {
         setTakes((prev) => {
