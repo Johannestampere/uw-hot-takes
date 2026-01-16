@@ -15,7 +15,7 @@ interface UseWebSocketOptions {
 export function useWebSocket(url: string, options: UseWebSocketOptions) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttemptsRef = useRef(0);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const shouldConnectRef = useRef(true);
 
   const {

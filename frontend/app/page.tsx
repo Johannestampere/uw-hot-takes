@@ -6,8 +6,10 @@ import TakeCard from "@/components/TakeCard";
 import TakeComposer from "@/components/TakeComposer";
 import SortToggle from "@/components/SortToggle";
 import { useFeedWebSocket } from "@/lib/useFeedWebSocket";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function Home() {
+  const { user } = useAuth();
   const [takes, setTakes] = useState<Take[]>([]);
   const [sort, setSort] = useState<SortOption>("newest");
   const [cursor, setCursor] = useState<string | null>(null);
@@ -15,19 +17,11 @@ export default function Home() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const recentlyPostedIds = useRef<Set<string>>(new Set());
   const pendingPostContent = useRef<string | null>(null);
-
-  // Check auth status
-  useEffect(() => {
-    api.getMe()
-      .then(() => setIsAuthenticated(true))
-      .catch(() => setIsAuthenticated(false));
-  }, []);
 
   // Fetch takes
   const fetchTakes = useCallback(async (sortOption: SortOption, cursorValue?: string) => {
@@ -141,7 +135,7 @@ export default function Home() {
 
   // Handle like/unlike
   const handleLike = async (id: string) => {
-    if (!isAuthenticated) {
+    if (!user) {
       alert("Please sign in to like takes");
       return;
     }
@@ -192,7 +186,7 @@ export default function Home() {
         <SortToggle value={sort} onChange={setSort} />
       </div>
 
-      {isAuthenticated && <TakeComposer onSubmit={handleSubmit} />}
+      {user && <TakeComposer onSubmit={handleSubmit} />}
 
       {error && (
         <div className="mb-4 p-3 bg-red-900/30 text-red-400 rounded-xl">

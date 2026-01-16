@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { config } from "@/lib/config";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,9 +33,9 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await api.register(email, password);
+      const response = await api.register(email, password);
+      setUser(response.user);
       router.push("/");
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {

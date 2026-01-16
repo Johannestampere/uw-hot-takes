@@ -11,6 +11,7 @@ from app.models import User
 from app.schemas.schemas import RegisterRequest, LoginRequest, AuthResponse, UserResponse
 from app.utils.password import hash_password, verify_password
 from app.utils.jwt import create_session_token
+from app.utils.jwt import verify_session_token
 from app.utils.username_generator import generate_username
 from app.dependencies import get_current_user
 from app.config import get_settings
@@ -22,6 +23,7 @@ settings = get_settings()
 COOKIE_NAME = "session"
 # Use secure cookies only in production (not localhost)
 COOKIE_SECURE = not settings.debug
+COOKIE_SAMESITE = "lax" if settings.debug else "none"
 
 # Google OAuth endpoints (public, same for everyone)
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -75,7 +77,7 @@ async def register(
         value=token,
         httponly=True,
         secure=COOKIE_SECURE,
-        samesite="lax",
+        samesite=COOKIE_SAMESITE,
         max_age=60 * 60 * 24 * 7,  # 7 days
     )
 
@@ -116,7 +118,7 @@ async def login(
         value=token,
         httponly=True,
         secure=COOKIE_SECURE,
-        samesite="lax",
+        samesite=COOKIE_SAMESITE,
         max_age=60 * 60 * 24 * 7,  # 7 days
     )
 
@@ -127,7 +129,11 @@ async def login(
 
 @router.post("/logout")
 async def logout(response: Response):
-    response.delete_cookie(key=COOKIE_NAME)
+    response.delete_cookie(
+        key=COOKIE_NAME,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+    )
     return {"message": "Logged out"}
 
 @router.get("/me", response_model=UserResponse)
@@ -135,6 +141,42 @@ async def get_me(
     current_user: User = Depends(get_current_user),
 ):
     return UserResponse.model_validate(current_user)
+
+@router.post("/token", response_model=UserResponse)
+async def exchange_token(
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+
+    body = await request.json()
+    token = body.get("token")
+
+    if not token:
+        raise HTTPException(status_code=400, detail="Token required")
+
+    # Verify token and get user
+    user_id = verify_session_token(token)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    # Set session cookie
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=token,
+        httponly=True,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+        max_age=60 * 60 * 24 * 7,  # 7 days
+    )
+
+    return UserResponse.model_validate(user)
 
 @router.get("/google")
 async def google_login():
@@ -231,15 +273,7 @@ async def google_callback(
         await db.flush()
         await db.refresh(user)
 
-    # Create session and redirect to frontend
+    # Create session and redirect to frontend with token in URL
     token = create_session_token(user.id)
-    redirect = RedirectResponse(url=settings.frontend_url, status_code=302)
-    redirect.set_cookie(
-        key=COOKIE_NAME,
-        value=token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite="lax",
-        max_age=60 * 60 * 24 * 7,  # 7 days
-    )
-    return redirect
+    redirect_url = f"{settings.frontend_url}?token={token}"
+    return RedirectResponse(url=redirect_url, status_code=302)

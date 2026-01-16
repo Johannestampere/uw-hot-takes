@@ -1,6 +1,7 @@
 from datetime import timedelta
 from fastapi import HTTPException, Request
 from app.utils.redis_client import get_redis
+from app.config import get_settings
 
 # Check if a certain rate limit has been exceeded
 async def check_rate_limit(
@@ -8,6 +9,9 @@ async def check_rate_limit(
     max_requests: int,
     window_seconds: int,
 ) -> None:
+    settings = get_settings()
+    if settings.debug:
+        return  # Skip rate limiting in debug mode
 
     redis_client = await get_redis()
 

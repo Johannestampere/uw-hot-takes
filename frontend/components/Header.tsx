@@ -1,24 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { api, User } from "@/lib/api";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/AuthContext";
 import Link from "next/link";
 
 export default function Header() {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    // Check auth status
-    api.getMe()
-      .then((userData) => setUser(userData))
-      .catch(() => setUser(null));
-  }, []);
+  const { user, setUser } = useAuth();
 
   const handleLogout = async () => {
     try {
       await api.logout();
       setUser(null);
-      window.location.href = "/";
     } catch (error) {
       console.error("Logout failed:", error);
     }

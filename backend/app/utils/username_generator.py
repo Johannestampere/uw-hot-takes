@@ -4,7 +4,8 @@ ADJECTIVES = [
     "Spicy", "Bold", "Chaotic", "Sleepy", "Cosmic", "Wild", "Chill", "Fierce",
     "Sneaky", "Funky", "Zesty", "Grumpy", "Jolly", "Witty", "Sassy", "Turbo",
     "Epic", "Lazy", "Brave", "Silly", "Crispy", "Fluffy", "Cranky", "Peppy",
-    "Mystic", "Stormy", "Sunny", "Frosty", "Rusty", "Dusty", "Sparkly", "Gloomy",
+    "Mystic", "Stormy", "Sunny", "Frosty", "Rusty", "Dusty", "Sparkly", "Gloomy", "REV",
+    "V1", "MC", "E7", "PAC", "SLC", "MKV", "CMH", "KingStreet", "FarahFoods"
 ]
 
 NOUNS = [

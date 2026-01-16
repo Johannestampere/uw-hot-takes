@@ -76,6 +76,12 @@ export const api = {
 
   getMe: () => fetchApi<User>("/auth/me"),
 
+  exchangeToken: (token: string) =>
+    fetchApi<User>("/auth/token", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
+
   // Takes
   getTakes: (sort: SortOption = "newest", cursor?: string, limit = 20) => {
     const params = new URLSearchParams({ sort, limit: String(limit) });
