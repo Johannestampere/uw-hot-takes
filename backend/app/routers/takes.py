@@ -240,6 +240,14 @@ async def delete_take(
 
     take.is_hidden = True
 
+    # Broadcast delete to feed subscribers
+    await publish_message("feed", {
+        "type": "delete_take",
+        "data": {
+            "id": str(take_id),
+        }
+    })
+
     return {"message": "Take deleted"}
 
 @router.post("/{take_id}/like")
