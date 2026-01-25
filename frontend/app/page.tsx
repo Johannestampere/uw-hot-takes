@@ -17,6 +17,7 @@ export default function Home() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -133,10 +134,17 @@ export default function Home() {
     },
   });
 
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   // Handle like/unlike
   const handleLike = async (id: string) => {
     if (!user) {
-      alert("Please sign in to like takes");
+      setToast("Please sign in to like takes");
       return;
     }
 
@@ -187,6 +195,12 @@ export default function Home() {
       </div>
 
       {user && <TakeComposer onSubmit={handleSubmit} />}
+
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-lg shadow-lg animate-fade-in">
+          {toast}
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-3 bg-red-900/30 text-red-400 rounded-xl">

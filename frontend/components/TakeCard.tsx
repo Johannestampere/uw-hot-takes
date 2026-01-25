@@ -34,20 +34,25 @@ export default function TakeCard({ take, onLike }: TakeCardProps) {
     onLike?.(take.id);
   };
 
+  const handleDoubleClick = () => {
+    if (!take.user_liked) {
+      handleLike();
+    }
+  };
+
   return (
     <>
-      <div className="p-4 border border-[rgba(255,215,0,0.6)] rounded-xl bg-zinc-900">
+      <div
+        className="p-4 border border-[rgba(255,215,0,0.6)] rounded-[8px] bg-zinc-900 hover:bg-zinc-800
+    hover:-translate-y-0.5
+    hover:scale-[1.01] hover:border-[rgba(227, 213, 107, 0.93)]"
+        onDoubleClick={handleDoubleClick}
+      >
         <div className="flex items-start justify-between mb-2">
-          <p className="text-zinc-100 whitespace-pre-wrap break-words flex-1">
+          <p className="text-zinc-100 whitespace-pre-wrap break-words flex-1 text-[18px]">
             {take.content}
           </p>
-          <button
-            onClick={() => setShowReportModal(true)}
-            className="ml-2 text-zinc-500 hover:text-red-500 transition-all duration-150 clickable text-sm"
-            title="Report"
-          >
-            Report
-          </button>
+
         </div>
         <div className="mt-3 flex items-center justify-between text-sm">
           <div className="flex items-center gap-3">

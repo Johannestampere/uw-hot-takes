@@ -18,6 +18,7 @@ export default function TakeDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCommentsLoading, setIsCommentsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const recentlyPostedCommentIds = useRef<Set<string>>(new Set());
   const pendingCommentContent = useRef<string | null>(null);
@@ -57,10 +58,18 @@ export default function TakeDetailPage() {
       });
   }, [takeId]);
 
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   // Handle like/unlike
   const handleLike = async (id: string) => {
     if (!isAuthenticated) {
-      alert("Please sign in to like takes");
+      setToast("Please sign in to like takes");
       return;
     }
 
@@ -163,6 +172,12 @@ export default function TakeDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-lg shadow-lg">
+          {toast}
+        </div>
+      )}
+
       <button
         onClick={() => router.back()}
         className="mb-4 text-zinc-200 hover:text-zinc-400 transition-colors"
@@ -173,7 +188,7 @@ export default function TakeDetailPage() {
       <TakeCard take={take} onLike={handleLike} />
 
       <div className="mt-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        <h3 className="text-lg font-semibold text-zinc-100 mb-4">
           Comments ({take.comment_count})
         </h3>
 

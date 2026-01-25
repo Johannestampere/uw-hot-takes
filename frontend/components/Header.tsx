@@ -17,7 +17,7 @@ export default function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-[rgba(255,215,0,0.3)] bg-zinc-900">
+    <header className="flex items-center justify-between px-6 py-4 bg-zinc-900">
       <Link
         href="/"
         className="text-xl font-bold text-zinc-100 hover:text-[#ffd700] transition-all duration-150 clickable"
