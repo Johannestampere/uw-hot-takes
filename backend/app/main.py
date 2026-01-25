@@ -16,6 +16,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://uwhottakes.vercel.app",
+        "https://uwhottakes.com",
         settings.frontend_url,
     ],
     allow_credentials=True,
