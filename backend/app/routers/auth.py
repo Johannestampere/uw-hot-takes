@@ -79,6 +79,7 @@ async def register(
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
         max_age=60 * 60 * 24 * 7,  # 7 days
+        path="/",
     )
 
     return AuthResponse(
@@ -105,11 +106,15 @@ async def login(
     result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
 
-    if not user or not user.password_hash:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not user:
+        raise HTTPException(status_code=401, detail="Account with this email doesn't exist")
+
+    if not user.password_hash:
+        # User exists but signed up with Google only
+        raise HTTPException(status_code=401, detail="Please sign in with Google")
 
     if not verify_password(request.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="Invalid password")
 
     # Set session cookie
     token = create_session_token(user.id)
@@ -120,6 +125,7 @@ async def login(
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
         max_age=60 * 60 * 24 * 7,  # 7 days
+        path="/",
     )
 
     return AuthResponse(
@@ -133,6 +139,7 @@ async def logout(response: Response):
         key=COOKIE_NAME,
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
+        path="/",
     )
     return {"message": "Logged out"}
 
@@ -174,6 +181,7 @@ async def exchange_token(
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
         max_age=60 * 60 * 24 * 7,  # 7 days
+        path="/",
     )
 
     return UserResponse.model_validate(user)
