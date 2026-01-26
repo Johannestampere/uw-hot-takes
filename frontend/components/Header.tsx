@@ -18,12 +18,17 @@ export default function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-zinc-900">
+    <header className="flex items-center justify-between px-6 py-4 bg-[#0c0c0c;] border-b border-zinc-700">
       <Link
         href="/"
         className="hover:opacity-80 transition-all duration-150 clickable text-[20px]"
       >
-        UW Hot Takes
+        <Image
+          src="/Logo.png"
+          alt="Logo"  
+          width={200}
+          height={50}
+        />
       </Link>
 
       <div className="flex items-center gap-4">

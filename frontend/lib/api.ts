@@ -91,6 +91,8 @@ export const api = {
 
   getTake: (id: string) => fetchApi<Take>(`/takes/${id}`),
 
+  getTopTakesToday: () => fetchApi<Take[]>(`/takes/top/today`),
+
   createTake: (content: string) =>
     fetchApi<Take>("/takes", {
       method: "POST",

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { api, Take, SortOption } from "@/lib/api";
 import TakeCard from "@/components/TakeCard";
+import TopTakeCard from "@/components/TopTakeCard";
 import TakeComposer from "@/components/TakeComposer";
 import SortToggle from "@/components/SortToggle";
 import { useFeedWebSocket } from "@/lib/useFeedWebSocket";
@@ -18,6 +19,7 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [trendingTakes, setTrendingTakes] = useState<Take[]>([]);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -131,6 +133,9 @@ export default function Home() {
       setTakes((prev) =>
         prev.map((t) => (t.id === takeId ? { ...t, like_count: likeCount } : t))
       );
+      setTrendingTakes((prev) =>
+        prev.map((t) => (t.id === takeId ? { ...t, like_count: likeCount } : t))
+      );
     },
     onDeleteTake: (takeId) => {
       setTakes((prev) => prev.filter((t) => t.id !== takeId));
@@ -144,6 +149,13 @@ export default function Home() {
     }
   }, [toast]);
 
+  // Fetch trending takes from backend
+  useEffect(() => {
+    api.getTopTakesToday()
+      .then((takes) => setTrendingTakes(takes))
+      .catch(() => setTrendingTakes([]));
+  }, []);
+
   // Handle like/unlike
   const handleLike = async (id: string) => {
     if (!user) {
@@ -151,18 +163,24 @@ export default function Home() {
       return;
     }
 
-    const take = takes.find((t) => t.id === id);
+    const take = takes.find((t) => t.id === id) || trendingTakes.find((t) => t.id === id);
     if (!take) return;
+
+    const newLiked = !take.user_liked;
+    const newLikeCount = take.user_liked ? take.like_count - 1 : take.like_count + 1;
 
     // Optimistic update
     setTakes((prev) =>
       prev.map((t) =>
         t.id === id
-          ? {
-              ...t,
-              user_liked: !t.user_liked,
-              like_count: t.user_liked ? t.like_count - 1 : t.like_count + 1,
-            }
+          ? { ...t, user_liked: newLiked, like_count: newLikeCount }
+          : t
+      )
+    );
+    setTrendingTakes((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? { ...t, user_liked: newLiked, like_count: newLikeCount }
           : t
       )
     );
@@ -178,11 +196,14 @@ export default function Home() {
       setTakes((prev) =>
         prev.map((t) =>
           t.id === id
-            ? {
-                ...t,
-                user_liked: take.user_liked,
-                like_count: take.like_count,
-              }
+            ? { ...t, user_liked: take.user_liked, like_count: take.like_count }
+            : t
+        )
+      );
+      setTrendingTakes((prev) =>
+        prev.map((t) =>
+          t.id === id
+            ? { ...t, user_liked: take.user_liked, like_count: take.like_count }
             : t
         )
       );
@@ -237,6 +258,9 @@ export default function Home() {
         </div>
       ) : (
         <div className="space-y-4">
+          {trendingTakes.map((take) => (
+            <TopTakeCard key={take.id} take={take} onLike={handleLike} />
+          ))}
           {takes.map((take) => (
             <TakeCard key={take.id} take={take} onLike={handleLike} />
           ))}
