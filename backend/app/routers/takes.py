@@ -182,6 +182,66 @@ async def get_takes(
 
     return TakesListResponse(takes=take_responses, next_cursor=next_cursor)
 
+@router.get("/top/today", response_model=list[TakeResponse])
+async def get_top_takes_today(
+    current_user: User | None = Depends(get_optional_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # Last 24 hours
+    cutoff = datetime.utcnow() - timedelta(hours=24)
+
+    # Get all non-hidden takes from last 24 hours
+    result = await db.execute(
+        select(Take)
+        .where(Take.is_hidden == False, Take.created_at >= cutoff)
+        .options(joinedload(Take.user))
+    )
+    takes = result.scalars().unique().all()
+
+    if not takes:
+        return []
+
+    # Get comment counts
+    take_ids = [t.id for t in takes]
+    counts_result = await db.execute(
+        select(Comment.take_id, func.count(Comment.id))
+        .where(and_(Comment.take_id.in_(take_ids), Comment.is_hidden == False))
+        .group_by(Comment.take_id)
+    )
+    comment_counts = {row[0]: row[1] for row in counts_result.fetchall()}
+
+    # Sort by engagement score (likes + comments) and get top 3
+    sorted_takes = sorted(
+        takes,
+        key=lambda t: t.like_count + comment_counts.get(t.id, 0),
+        reverse=True
+    )[:3]
+
+    # Get user's likes if authenticated
+    user_liked_ids = set()
+    if current_user and sorted_takes:
+        top_ids = [t.id for t in sorted_takes]
+        likes_result = await db.execute(
+            select(Like.take_id).where(
+                and_(Like.user_id == current_user.id, Like.take_id.in_(top_ids))
+            )
+        )
+        user_liked_ids = {row[0] for row in likes_result.fetchall()}
+
+    return [
+        TakeResponse(
+            id=take.id,
+            content=take.content,
+            like_count=take.like_count,
+            comment_count=comment_counts.get(take.id, 0),
+            created_at=take.created_at,
+            username=take.user.username,
+            user_liked=take.id in user_liked_ids,
+        )
+        for take in sorted_takes
+    ]
+
+
 @router.get("/{take_id}", response_model=TakeResponse)
 async def get_take(
     take_id: UUID,
