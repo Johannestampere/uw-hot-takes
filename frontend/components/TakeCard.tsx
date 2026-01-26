@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Take } from "@/lib/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ReportModal from "./ReportModal";
 
 interface TakeCardProps {
@@ -23,8 +24,11 @@ function formatTimeAgo(dateString: string): string {
 }
 
 export default function TakeCard({ take, onLike }: TakeCardProps) {
+  const router = useRouter();
   const [showReportModal, setShowReportModal] = useState(false);
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
+  const clickTimeout = useRef<NodeJS.Timeout | null>(null);
+  const clickCount = useRef(0);
 
   const handleLike = () => {
     if (!take.user_liked) {
@@ -34,9 +38,32 @@ export default function TakeCard({ take, onLike }: TakeCardProps) {
     onLike?.(take.id);
   };
 
-  const handleDoubleClick = () => {
-    if (!take.user_liked) {
-      handleLike();
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Ignore clicks on interactive elements (buttons, links)
+    if ((e.target as HTMLElement).closest('button, a')) {
+      return;
+    }
+
+    clickCount.current += 1;
+
+    if (clickCount.current === 1) {
+      // First click - wait to see if it's a double click
+      clickTimeout.current = setTimeout(() => {
+        if (clickCount.current === 1) {
+          // Single click - open comments
+          router.push(`/takes/${take.id}`);
+        }
+        clickCount.current = 0;
+      }, 250);
+    } else if (clickCount.current === 2) {
+      // Double click - like
+      if (clickTimeout.current) {
+        clearTimeout(clickTimeout.current);
+      }
+      clickCount.current = 0;
+      if (!take.user_liked) {
+        handleLike();
+      }
     }
   };
 
@@ -45,8 +72,8 @@ export default function TakeCard({ take, onLike }: TakeCardProps) {
       <div
         className="p-4 border border-[rgba(255,215,0,0.6)] rounded-[8px] bg-zinc-900 hover:bg-zinc-800
     hover:-translate-y-0.5
-    hover:scale-[1.01] hover:border-[rgba(227, 213, 107, 0.93)]"
-        onDoubleClick={handleDoubleClick}
+    hover:scale-[1.01] hover:border-[rgba(227, 213, 107, 0.93)] cursor-pointer"
+        onClick={handleCardClick}
       >
         <div className="flex items-start justify-between mb-2">
           <p className="text-zinc-100 whitespace-pre-wrap break-words flex-1 text-[18px]">

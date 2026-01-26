@@ -3,6 +3,7 @@
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Header() {
   const { user, setUser } = useAuth();
@@ -20,7 +21,7 @@ export default function Header() {
     <header className="flex items-center justify-between px-6 py-4 bg-zinc-900">
       <Link
         href="/"
-        className="text-xl font-bold text-zinc-100 hover:text-[#ffd700] transition-all duration-150 clickable"
+        className="hover:opacity-80 transition-all duration-150 clickable text-[20px]"
       >
         UW Hot Takes
       </Link>

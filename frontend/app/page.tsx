@@ -132,6 +132,9 @@ export default function Home() {
         prev.map((t) => (t.id === takeId ? { ...t, like_count: likeCount } : t))
       );
     },
+    onDeleteTake: (takeId) => {
+      setTakes((prev) => prev.filter((t) => t.id !== takeId));
+    },
   });
 
   useEffect(() => {

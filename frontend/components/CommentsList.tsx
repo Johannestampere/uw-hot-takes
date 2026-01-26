@@ -29,24 +29,23 @@ export default function CommentsList({ comments }: CommentsListProps) {
         {comments.map((comment) => (
           <div
             key={comment.id}
-            className="p-3 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900"
+            className="p-3 border border-zinc-600 rounded-[8px] bg-zinc-900/70"
           >
-            <div className="flex items-start justify-between mb-2">
-              <p className="text-gray-900 dark:text-gray-100 text-sm whitespace-pre-wrap break-words flex-1">
+            <div className="flex items-start justify-between">
+              <p className="text-zinc-200 text-[15px] whitespace-pre-wrap break-words flex-1">
                 {comment.content}
               </p>
               <button
                 onClick={() => setReportingCommentId(comment.id)}
-                className="ml-2 text-gray-400 hover:text-red-500 transition-colors text-xs"
+                className="ml-2 text-zinc-500 hover:text-red-500 transition-all duration-150 text-xs"
                 title="Report"
               >
                 Report
               </button>
             </div>
-            <div className="mt-2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <span className="font-medium">{comment.username}</span>
-              <span>•</span>
-              <span>{formatTimeAgo(comment.created_at)}</span>
+            <div className="mt-2 flex items-center gap-2 text-xs">
+              <span className="font-medium text-zinc-400">{comment.username}</span>
+              <span className="text-zinc-600">{formatTimeAgo(comment.created_at)}</span>
             </div>
           </div>
         ))}
