@@ -45,7 +45,7 @@ export default function TopTakeCard({ take, onLike }: TopTakeCardProps) {
 
   return (
     <div
-      className="p-3 border border-[rgba(220,38,38,0.6)] rounded-[8px] bg-[#1a0a0a] hover:bg-[#2a1010] cursor-pointer transition-all duration-150"
+      className="p-4 border border-[rgba(74,_74,_74,_0.93)] rounded-[20px] bg-zinc-900 hover:bg-zinc-800 cursor-pointer transition-all duration-150"
       onClick={handleCardClick}
     >
       <div className="flex items-center gap-2 mb-2">

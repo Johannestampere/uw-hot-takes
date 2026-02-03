@@ -40,7 +40,7 @@ export default function TakeComposer({ onSubmit, disabled }: TakeComposerProps) 
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="drop your hot take"
+        placeholder="drop your waterloo hot take"
         disabled={disabled || isSubmitting}
         className="w-full p-4 border border-[rgba(255,215,0,0.6)] rounded-xl bg-zinc-900 text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none focus:ring-2 focus:ring-[#ffd700] disabled:opacity-50 transition-all duration-150"
         rows={3}

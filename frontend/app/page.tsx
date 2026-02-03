@@ -237,7 +237,7 @@ export default function Home() {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="p-4 border border-[rgba(255,215,0,0.6)] rounded-xl bg-zinc-900"
+              className="p-4 border border-[rgba(74,_74,_74,_0.93)] rounded-[20px] bg-zinc-900"
             >
               <div className="flex items-center gap-2 mb-3">
                 <div className="skeleton h-4 w-24" />

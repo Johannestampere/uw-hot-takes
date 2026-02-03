@@ -66,11 +66,11 @@ export default function TakeCard({ take, onLike }: TakeCardProps) {
       }
     }
   };
-
+  
   return (
     <>
-      <div
-        className="p-4 border border-[rgba(255,215,0,0.6)] rounded-[8px] bg-zinc-900 hover:bg-zinc-800
+      <div 
+        className="p-4 border border-[rgba(74,_74,_74,_0.93)] rounded-[20px] bg-zinc-900 hover:bg-zinc-800
     hover:-translate-y-0.5
     hover:scale-[1.01] hover:border-[rgba(227, 213, 107, 0.93)] cursor-pointer"
         onClick={handleCardClick}
