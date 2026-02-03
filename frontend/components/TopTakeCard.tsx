@@ -37,9 +37,7 @@ export default function TopTakeCard({ take, onLike }: TopTakeCardProps) {
         clearTimeout(clickTimeout.current);
       }
       clickCount.current = 0;
-      if (!take.user_liked) {
-        handleLike();
-      }
+      handleLike();
     }
   };
 

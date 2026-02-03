@@ -61,9 +61,7 @@ export default function TakeCard({ take, onLike }: TakeCardProps) {
         clearTimeout(clickTimeout.current);
       }
       clickCount.current = 0;
-      if (!take.user_liked) {
-        handleLike();
-      }
+      handleLike();
     }
   };
   
